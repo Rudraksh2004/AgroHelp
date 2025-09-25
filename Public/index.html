@@ -1,0 +1,584 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Agrohelp</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Font Awesome CDN for Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        /* Base styles for the light theme */
+        body.light {
+            background-color: #f7f9fc;
+        }
+        .chat-container.light {
+            background-color: white;
+        }
+        .chat-header.light {
+            background-color: #0d9488;
+            color: white;
+        }
+        .chat-bubble.light.user {
+            background-color: #0d9488;
+            color: white;
+        }
+        .chat-bubble.light.bot {
+            background-color: #e2e8f0;
+            color: #1a202c;
+        }
+        .input-box.light {
+            background-color: #f8fafc;
+            color: #1a202c;
+            border-color: #e2e8f0;
+        }
+        .send-button.light {
+            background-color: #0d9488;
+        }
+
+        /* Styles for the dark theme */
+        body.dark {
+            background-color: #1a202c;
+        }
+        .chat-container.dark {
+            background-color: #2d3748;
+        }
+        .chat-header.dark {
+            background-color: #0f766e;
+            color: white;
+        }
+        .chat-bubble.dark.user {
+            background-color: #0f766e;
+            color: white;
+        }
+        .chat-bubble.dark.bot {
+            background-color: #4a5568;
+            color: #f8fafc;
+        }
+        .input-box.dark {
+            background-color: #2d3748;
+            color: #f8fafc;
+            border-color: #4a5568;
+        }
+        .send-button.dark {
+            background-color: #0d9488;
+        }
+    
+        /* Common styles for both themes */
+        body {
+            font-family: 'Inter', sans-serif;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+            transition: background-color 0.3s ease;
+        }
+        .chat-bubble {
+            max-width: 80%;
+            word-wrap: break-word;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1); 
+        }
+
+        /* Custom Dropdown Styling */
+        .dropdown-menu {
+            transition: opacity 0.2s ease-in-out, transform 0.2s ease-in-out;
+            transform-origin: top;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        .dropdown-menu.hidden {
+            opacity: 0;
+            transform: scaleY(0.9);
+            pointer-events: none;
+        }
+    </style>
+</head>
+<body class="light flex items-center justify-center min-h-screen">
+
+    <div id="chat-container" class="w-full max-w-2xl h-[90vh] flex flex-col rounded-xl shadow-2xl overflow-hidden chat-container light">
+
+        <div id="chat-header" class="p-4 rounded-t-xl flex items-center justify-between shadow-md chat-header light">
+            <div class="flex items-center">
+                <div class="w-10 h-10 bg-teal-500 rounded-full flex items-center justify-center mr-3 border-2 border-teal-400">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm-2-9a1 1 0 11-2 0 1 1 0 012 0zm4 0a1 1 0 11-2 0 1 1 0 012 0zm-2 4a4 4 0 01-4 4H8a2 2 0 00-2 2h12a2 2 0 00-2-2h-2a4 4 0 01-4-4z"/>
+                    </svg>
+                </div>
+                <div>
+                    <h1 class="text-xl font-semibold" id="agrohelp-title">Agrohelp</h1>
+                    <p class="text-sm text-teal-200" id="agrohelp-subtitle">Your AI Farming Assistant</p>
+                </div>
+            </div>
+
+            <div class="flex space-x-2">
+                <div class="relative inline-block text-left">
+                    <button id="lang-dropdown-toggle" class="inline-flex justify-center items-center w-full rounded-md px-4 py-2 text-sm font-medium text-white bg-white/20 border border-white/30 hover:bg-white/30 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-teal-600 focus:ring-white transition duration-200">
+                        <i class="fas fa-globe mr-2"></i>
+                        <span id="selected-lang-text">Language</span>
+                        <svg class="-mr-1 ml-2 h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                            <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
+                        </svg>
+                    </button>
+    
+                    <div id="lang-dropdown-menu" class="dropdown-menu hidden absolute right-0 mt-2 w-40 rounded-md shadow-lg bg-teal-600 ring-1 ring-black ring-opacity-5 focus:outline-none z-10">
+                        <div class="py-1" role="menu" aria-orientation="vertical" aria-labelledby="options-menu">
+                            <button class="block px-4 py-2 text-sm text-white hover:bg-teal-500 w-full text-left" role="menuitem" data-lang="English">English (default)</button>
+                            <button class="block px-4 py-2 text-sm text-white hover:bg-teal-500 w-full text-left" role="menuitem" data-lang="Hindi">Hindi</button>
+                            <button class="block px-4 py-2 text-sm text-white hover:bg-teal-500 w-full text-left" role="menuitem" data-lang="Bengali">Bengali (বাংলা)</button>
+                            <button class="block px-4 py-2 text-sm text-white hover:bg-teal-500 w-full text-left" role="menuitem" data-lang="Assamese">Assamese (অসমীয়া)</button>
+                            <button class="block px-4 py-2 text-sm text-white hover:bg-teal-500 w-full text-left" role="menuitem" data-lang="Haryanvi">Haryanvi (हरियाणवी)</button>
+                            <button class="block px-4 py-2 text-sm text-white hover:bg-teal-500 w-full text-left" role="menuitem" data-lang="Punjabi">Punjabi (ਪੰਜਾਬੀ)</button>
+                            <button class="block px-4 py-2 text-sm text-white hover:bg-teal-500 w-full text-left" role="menuitem" data-lang="Odia">Odia (ଓଡ଼ିଆ)</button>
+                            <button class="block px-4 py-2 text-sm text-white hover:bg-teal-500 w-full text-left" role="menuitem" data-lang="Malayalam">Malayalam (മലയാളം)</button>
+                            <button class="block px-4 py-2 text-sm text-white hover:bg-teal-500 w-full text-left" role="menuitem" data-lang="Telugu">Telugu (తెలుగు)</button>
+                            <button class="block px-4 py-2 text-sm text-white hover:bg-teal-500 w-full text-left" role="menuitem" data-lang="Kannada">Kannada (ಕನ್ನಡ)</button>
+                            <button class="block px-4 py-2 text-sm text-white hover:bg-teal-500 w-full text-left" role="menuitem" data-lang="Bhojpuri">Bhojpuri (भोजपुरी)</button>
+                            <button class="block px-4 py-2 text-sm text-white hover:bg-teal-500 w-full text-left" role="menuitem" data-lang="Tamil">Tamil (தமிழ்)</button>
+                            <button class="block px-4 py-2 text-sm text-white hover:bg-teal-500 w-full text-left" role="menuitem" data-lang="Urdu">Urdu (اردو)</button>
+                            <button class="block px-4 py-2 text-sm text-white hover:bg-teal-500 w-full text-left" role="menuitem" data-lang="Marathi">Marathi (मराठी)</button>
+                            <button class="block px-4 py-2 text-sm text-white hover:bg-teal-500 w-full text-left" role="menuitem" data-lang="Gujarati">Gujarati (ગુજરાતી)</button>
+                            <button class="block px-4 py-2 text-sm text-white hover:bg-teal-500 w-full text-left" role="menuitem" data-lang="Santhali">Santhali (ᱥᱟᱱᱛᱟᱲᱤ)</button>
+                            <button class="block px-4 py-2 text-sm text-white hover:bg-teal-500 w-full text-left" role="menuitem" data-lang="Sindhi">Sindhi (سنڌي)</button>
+                            <button class="block px-4 py-2 text-sm text-white hover:bg-teal-500 w-full text-left" role="menuitem" data-lang="Nepali">Nepali (नेपाली)</button>
+                            <button class="block px-4 py-2 text-sm text-white hover:bg-teal-500 w-full text-left" role="menuitem" data-lang="Manipuri">Manipuri (ꯃꯩꯇꯩꯂꯣꯟ)</button>
+                            <button class="block px-4 py-2 text-sm text-white hover:bg-teal-500 w-full text-left" role="menuitem" data-lang="Maithili">Maithili (मैथिली)</button>
+                            <button class="block px-4 py-2 text-sm text-white hover:bg-teal-500 w-full text-left" role="menuitem" data-lang="Konkani">Konkani (कोंकणी)</button>
+                            <button class="block px-4 py-2 text-sm text-white hover:bg-teal-500 w-full text-left" role="menuitem" data-lang="Kashmiri">Kashmiri (کٲشُر)</button>
+                            <button class="block px-4 py-2 text-sm text-white hover:bg-teal-500 w-full text-left" role="menuitem" data-lang="Dogri">Dogri (डोगरी)</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="relative inline-block text-left">
+                    <button id="theme-dropdown-toggle" class="inline-flex justify-center items-center w-full rounded-md px-4 py-2 text-sm font-medium text-white bg-white/20 border border-white/30 hover:bg-white/30 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-teal-600 focus:ring-white transition duration-200">
+                        <i class="fas fa-palette mr-2"></i>
+                        <span id="selected-theme-text">Theme</span>
+                        <svg class="-mr-1 ml-2 h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                            <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
+                        </svg>
+                    </button>
+
+                    <div id="theme-dropdown-menu" class="dropdown-menu hidden absolute right-0 mt-2 w-40 rounded-md shadow-lg bg-teal-600 ring-1 ring-black ring-opacity-5 focus:outline-none z-10">
+                        <div class="py-1" role="menu" aria-orientation="vertical" aria-labelledby="options-menu">
+                            <button class="block px-4 py-2 text-sm text-white hover:bg-teal-500 w-full text-left" role="menuitem" data-theme="light">Light (default)</button>
+                            <button class="block px-4 py-2 text-sm text-white hover:bg-teal-500 w-full text-left" role="menuitem" data-theme="dark">Dark</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        <div id="chat-window" class="flex-1 p-6 overflow-y-auto bg-slate-50">
+            <div class="flex justify-start mb-4">
+                <div class="chat-bubble bot p-4 rounded-lg light">
+                    <p id="greeting-message">Hello! I'm Agrohelp, your AI farming assistant. I can provide advice tailored to your region. Please tell me your city or state in India to get started.</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="p-4 bg-white border-t border-slate-200">
+            <form id="chat-form" class="flex items-center space-x-4">
+                <input type="text" id="message-input" placeholder="Type your message..." autocomplete="off"
+                    class="flex-1 p-3 border border-slate-300 rounded-full focus:outline-none focus:ring-2 focus:ring-teal-500 transition duration-300 input-box light">
+                <button type="submit" id="send-button"
+                    class="p-3 rounded-full focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-teal-500 transition duration-300 send-button light">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" viewBox="0 0 24 24" fill="white">
+                        <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/>
+                    </svg>
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // Language & Theme State
+        let userLocation = null;
+        let userLanguage = "English";
+
+        // Translation dictionary for static text
+        const translations = {
+            "English": {
+                "title": "Agrohelp",
+                "subtitle": "Your AI Farming Assistant",
+                "greeting": "Hello! I'm Agrohelp, your AI farming assistant. I can provide advice tailored to your region. Please tell me your city or state in India to get started.",
+                "placeholder": "Type your message..."
+            },
+            "Hindi": {
+                "title": "एग्रोहेल्प",
+                "subtitle": "आपका एआई कृषि सहायक",
+                "greeting": "नमस्ते! मैं एग्रोहेल्प हूं, आपका एआई कृषि सहायक। मैं आपके क्षेत्र के अनुसार सलाह दे सकता हूँ। कृपया शुरू करने के लिए अपने शहर या राज्य का नाम बताएं।",
+                "placeholder": "अपना संदेश टाइप करें..."
+            },
+            "Bengali": {
+                "title": "অ্যাগ্রোহেল্প",
+                "subtitle": "আপনার এআই কৃষি সহায়ক",
+                "greeting": "নমস্কার! আমি অ্যাগ্রোহেল্প, আপনার এআই কৃষি সহায়ক। আমি আপনার অঞ্চলের জন্য উপযুক্ত পরামর্শ দিতে পারি। শুরু করতে, দয়া করে আপনার শহর বা রাজ্যের নাম বলুন।",
+                "placeholder": "আপনার বার্তা লিখুন..."
+            },
+            "Assamese": {
+                "title": "এগ্ৰোহেল্প",
+                "subtitle": "আপোনাৰ এআই কৃষি সহায়ক",
+                "greeting": "নমস্কাৰ! মই এগ্ৰোহেল্প, আপোনাৰ এআই কৃষি সহায়ক। মই আপোনাৰ অঞ্চলৰ বাবে উপযুক্ত পৰামৰ্শ দিব পাৰোঁ। আৰম্ভ কৰিবলৈ, অনুগ্ৰহ কৰি আপোনাৰ চহৰ বা ৰাজ্যৰ নাম জনাওক।",
+                "placeholder": "আপোনাৰ বাৰ্তা লিখক..."
+            },
+            "Haryanvi": {
+                "title": "एग्रोहेल्प",
+                "subtitle": "थारा एआई खेती सहायक",
+                "greeting": "राम-राम! मैं एग्रोहेल्प हूँ, थारा एआई खेती सहायक। मैं थारे इलाके के हिसाब तें सलाह दे सकूँ हूँ। शुरू करण खातिर, अपणे शहर या सूबे का नाम बता दे।",
+                "placeholder": "अपना संदेश लिखो..."
+            },
+            "Punjabi": {
+                "title": "ਐਗਰੋਹੈਲਪ",
+                "subtitle": "ਤੁਹਾਡਾ ਏਆਈ ਖੇਤੀਬਾੜੀ ਸਹਾਇਕ",
+                "greeting": "ਸਤਿ ਸ੍ਰੀ ਅਕਾਲ! ਮੈਂ ਐਗਰੋਹੈਲਪ ਹਾਂ, ਤੁਹਾਡਾ ਏਆਈ ਖੇਤੀਬਾੜੀ ਸਹਾਇਕ। ਮੈਂ ਤੁਹਾਡੇ ਖੇਤਰ ਲਈ ਢੁਕਵੀਂ ਸਲਾਹ ਦੇ ਸਕਦਾ ਹਾਂ। ਸ਼ੁਰੂ ਕਰਨ ਲਈ, ਕਿਰਪਾ ਕਰਕੇ ਆਪਣੇ ਸ਼ਹਿਰ ਜਾਂ ਸੂਬੇ ਦਾ ਨਾਮ ਦੱਸੋ।",
+                "placeholder": "ਆਪਣਾ ਸੁਨੇਹਾ ਟਾਈਪ ਕਰੋ..."
+            },
+            "Odia": {
+                "title": "ଆଗ୍ରୋହେଲ୍ପ",
+                "subtitle": "ଆପଣଙ୍କ ଏଆଇ କୃଷି ସହାୟକ",
+                "greeting": "ନମସ୍କାର! ମୁଁ ଆଗ୍ରୋହେଲ୍ପ, ଆପଣଙ୍କ ଏଆଇ କୃଷି ସହାୟକ। ମୁଁ ଆପଣଙ୍କ ଅଞ୍ଚଳ ପାଇଁ ଉପଯୁକ୍ତ ପରାମର୍ଶ ଦେଇପାରେ। ଆରମ୍ଭ କରିବା ପାଇଁ, ଦୟାକରି ଆପଣଙ୍କ ସହର ବା ରାଜ୍ୟର ନାମ କୁହନ୍ତୁ।",
+                "placeholder": "ଆପଣଙ୍କ ବାର୍ତ୍ତା ଲେଖନ୍ତୁ..."
+            },
+            "Malayalam": {
+                "title": "അഗ്രോഹെൽപ്പ്",
+                "subtitle": "നിങ്ങളുടെ AI കാർഷിക സഹായി",
+                "greeting": "നമസ്കാരം! ഞാൻ അഗ്രോഹെൽപ്പ്, നിങ്ങളുടെ AI കാർഷിക സഹായിയാണ്. നിങ്ങളുടെ പ്രദേശത്തിന് അനുയോജ്യമായ ഉപദേശം നൽകാൻ എനിക്ക് കഴിയും. ആരംഭിക്കുന്നതിന് നിങ്ങളുടെ നഗരത്തിന്റെയോ സംസ്ഥാനത്തിന്റെയോ പേര് ദയവായി പറയുക.",
+                "placeholder": "നിങ്ങളുടെ സന്ദേശം ടൈപ്പ് ചെയ്യുക..."
+            },
+            "Telugu": {
+                "title": "అగ్రోహెల్ప్",
+                "subtitle": "మీ AI వ్యవసాయ సహాయకుడు",
+                "greeting": "నమస్కారం! నేను అగ్రోహెల్ప్, మీ AI వ్యవసాయ సహాయకుడిని. మీ ప్రాంతానికి అనుగుణంగా నేను సలహా ఇవ్వగలను. దయచేసి ప్రారంభించడానికి మీ నగരം లేదా రాష్ట్రం పేరు చెప్పండి.",
+                "placeholder": "మీ సందేశాన్ని టైప్ చేయండి..."
+            },
+            "Kannada": {
+                "title": "ಅಗ್ರೋಹೆಲ್ಪ್",
+                "subtitle": "ನಿಮ್ಮ AI ಕೃಷಿ ಸಹಾಯಕ",
+                "greeting": "ನಮಸ್ಕಾರ! ನಾನು ಅಗ್ರೋಹೆಲ್ಪ್, ನಿಮ್ಮ AI ಕೃಷಿ ಸಹಾಯಕ. ನಾನು ನಿಮ್ಮ ಪ್ರದೇಶಕ್ಕೆ ಸೂಕ್ತವಾದ ಸಲಹೆ ನೀಡಬಲ್ಲೆ. ಪ್ರಾರಂಭಿಸಲು, ದಯವಿಟ್ಟು ನಿಮ್ಮ ನಗರ ಅಥವಾ ರಾಜ್ಯದ ಹೆಸರನ್ನು ತಿಳಿಸಿ.",
+                "placeholder": "ನಿಮ್ಮ ಸಂದೇಶವನ್ನು ಟೈಪ್ ಮಾಡಿ..."
+            },
+            "Bhojpuri": {
+                "title": "एग्रोहेल्प",
+                "subtitle": "तोहार एआई किसानी सहायक",
+                "greeting": "राम राम! हम एग्रोहेल्प हईं, तोहार एआई किसानी सहायक। हम रउआ के इलाका के हिसाब से सलाह देब। सुरू करे खातिर, अपना शहर भा राज्य के नाँव बता दीं।",
+                "placeholder": "आपन संदेश लिखल जाव..."
+            },
+            "Tamil": {
+                "title": "அக்ரோஹெல்ப்",
+                "subtitle": "உங்கள் AI விவசாய உதவியாளர்",
+                "greeting": "வணக்கம்! நான் அக்ரோஹெல்ப், உங்கள் AI விவசாய உதவியாளர். உங்கள் பகுதிக்கு ஏற்ற ஆலோசனைகளை நான் வழங்க முடியும். தொடங்குவதற்கு, தயவுசெய்து உங்கள் நகரம் அல்லது மாநிலத்தின் பெயரைச் சொல்லுங்கள்.",
+                "placeholder": "உங்கள் செய்தியைத் தட்டச்சு செய்க..."
+            },
+            "Urdu": {
+                "title": "ایگروہیلپ",
+                "subtitle": "آپ کا AI زرعی معاون",
+                "greeting": "سلام! میں ایگروہیلپ ہوں، آپ کا AI زرعی معاون ہوں۔ میں آپ کے علاقے کے مطابق مشورہ دے سکتا ہوں۔ شروع کرنے کے لیے، براہ کرم اپنے شہر یا ریاست کا نام بتائیں۔",
+                "placeholder": "اپنا پیغام لکھیں..."
+            },
+            "Marathi": {
+                "title": "अग्रोहेल्प",
+                "subtitle": "तुमचा एआय शेती सहायक",
+                "greeting": "नमस्कार! मी अग्रोहेल्प, तुमचा एआय शेती सहायक आहे. मी तुमच्या भागासाठी योग्य सल्ला देऊ शकतो. सुरू करण्यासाठी, कृपया तुमच्या शहराचे किंवा राज्याचे नाव सांगा.",
+                "placeholder": "तुमचा संदेश टाइप करा..."
+            },
+            "Gujarati": {
+                "title": "એગ્રોહેલ્પ",
+                "subtitle": "તમારું AI ખેતી સહાયક",
+                "greeting": "નમસ્કાર! હું એગ્રોહેલ્પ છું, તમારું AI ખેતી સહાયક. હું તમારા વિસ્તાર માટે યોગ્ય સલાહ આપી શકું છું. શરૂ કરવા માટે, કૃપા કરીને તમારા શહેર અથવા રાજ્યનું નામ જણાવો.",
+                "placeholder": "તમારો સંદેશ લખો..."
+            },
+            "Santhali": {
+                "title": "ᱟᱜᱨᱚᱦᱮᱞᱯ",
+                "subtitle": "ᱟᱯᱱᱟ ᱟᱭᱤ ᱠᱷᱮᱛᱤ ᱥᱟᱦᱟᱭᱚᱠ",
+                "greeting": "ᱡᱚᱦᱟᱨ! ᱤᱧ ᱟᱜᱨᱚᱦᱮᱞᱯ, ᱟᱯᱱᱟ ᱟᱭᱤ ᱠᱷᱮᱛᱤ ᱥᱟᱦᱟᱭᱚᱠ᱾ ᱤᱧ ᱟᱯᱱᱟ ᱴᱷᱟᱶ ᱞᱟᱹᱜᱤᱫ ᱡᱚᱜ ᱥᱟᱞᱟᱦ ᱮᱢ ᱫᱟᱲᱮᱭᱟᱜᱼᱟ᱾ ᱮᱛᱚᱦᱚᱵ ᱞᱟᱹᱜᱤᱫ, ᱫᱚᱭᱟ ᱠᱟᱛᱮ ᱟᱯᱱᱟ ᱱᱟᱜᱟᱨ ᱠᱷᱚᱱ ᱟᱹᱛᱩ ᱨᱮᱱᱟᱜ ᱧᱩᱛᱩᱢ ᱞᱟᱹᱭ ᱢᱮ᱾",
+                "placeholder": "ᱟᱯᱱᱟ ᱢᱮᱥᱮᱡ ᱚᱞ ᱢᱮ..."
+            },
+            "Sindhi": {
+                "title": "ايگروهيلپ",
+                "subtitle": "توهان جو AI زراعت جو مددگار",
+                "greeting": "سلام! مان ايگروهيلپ آهيان، توهان جو AI زراعت جو مددگار. مان توهان جي علائقي مطابق مشورو ڏئي سگهان ٿو. شروع ڪرڻ لاءِ، مهرباني ڪري پنهنجي شهر يا رياست جو نالو ٻڌايو.",
+                "placeholder": "پنهنجو پيغام لکو..."
+            },
+            "Nepali": {
+                "title": "एग्रोहेल्प",
+                "subtitle": "तपाईंको एआई कृषि सहायक",
+                "greeting": "नमस्कार! म एग्रोहेल्प हुँ, तपाईंको एआई कृषि सहायक। म तपाईंको क्षेत्र अनुसार सल्लाह दिन सक्छु। कृपया सुरु गर्न आफ्नो शहर वा राज्यको नाम बताउनुहोस्।",
+                "placeholder": "आफ्नो सन्देश टाइप गर्नुहोस्..."
+            },
+            "Manipuri": {
+                "title": "ꯑꯒ꯭ꯔꯣꯍꯦꯜꯞ",
+                "subtitle": "ꯑꯗꯨꯝ ꯑꯩꯈꯣꯏꯒꯤ ꯑꯩ.ꯑꯥꯏ ꯂꯧꯁꯤꯡ ꯑꯅꯤꯡꯕꯥ",
+                "greeting": "ꯅꯨꯡꯉꯥꯏꯕꯥ ꯈꯣꯝꯃꯥꯇ! ꯑꯩ ꯑꯒ꯭ꯔꯣꯍꯦꯜꯞ, ꯑꯗꯨꯝ ꯑꯩ.ꯑꯥꯏ ꯂꯧꯁꯤꯡ ꯑꯅꯤꯡꯕꯥ꯫ ꯑꯩꯅꯥ ꯑꯗꯨꯝ ꯃꯄꯥꯟꯅꯥ ꯑꯗꯨꯝ ꯄꯨꯝꯖꯤꯠꯅꯥ ꯊꯤꯕꯥ ꯫ ꯑꯗꯨꯝ ꯑꯣꯏꯅꯥ ꯊꯨꯡꯅꯥ ꯍꯥꯏꯕꯥ ꯃꯊꯧ ꯑꯩꯈꯣꯏꯒꯤ ꯃꯅꯤꯄꯨꯔꯤ ꯂꯧꯁꯤꯡ ꯑꯃꯗꯥ ꯂꯩꯔꯤꯗꯥ ꯂꯩꯔꯤ ꯃꯃꯥꯡꯗꯥ ꯂꯩꯖꯔꯤꯕꯥ ꯆꯤꯡꯇꯥꯡꯁꯥꯡ ꯂꯩꯔꯤꯕꯥ꯫",
+                "placeholder": "ꯑꯗꯨꯝ ꯃꯩꯔꯥꯡ ꯊꯥꯡꯕꯥ..."
+            },
+            "Maithili": {
+                "title": "एग्रोहेल्प",
+                "subtitle": "अहाँक एआई कृषि सहायक",
+                "greeting": "नमस्ते! हम एग्रोहेल्प छी, अहाँक एआई कृषि सहायक। हम अहाँकेँ क्षेत्रकेँ अनुसार सलाह दऽ सकैत छी। कृपया शुरू करबाक लेल अपन गामक नाम बताऊ।",
+                "placeholder": "अपन संदेश लिखू..."
+            },
+            "Konkani": {
+                "title": "एग्रोहेल्प",
+                "subtitle": "तुमचो एआय शेती सहायक",
+                "greeting": "नमस्कार! हांव एग्रोहेल्प, तुमचो एआय शेती सहायक. हांव तुमचो भागाखातीर योग्य सल्लह दिवं येता. सुरु करपाखातीर, कृपा करून तुमच्या शाराचें वा राज्याचें नांव सांगात.",
+                "placeholder": "तुमचो संदेश टाइप करात..."
+            },
+            "Kashmiri": {
+                "title": "ایگروہیلپ",
+                "subtitle": "تُہُند AI زراعتُک مددگار",
+                "greeting": "سلام! بۄ چھُس ایگروہیلپ، تُہُند AI زراعتُک مددگار. بۄ چھُس تُہُندِس علاقَس مُطٲبِق مَشوَرٕ دِوان. شروع کَرنہٕ خٲطرٕ، مہرٕبانی کٔرِتھ پنُن شَہَر یا رِیاستُک ناو وانہِ.",
+                "placeholder": "پنُن پیغام لؠکھِو..."
+            },
+            "Dogri": {
+                "title": "एग्रोहेल्प",
+                "subtitle": "तुहाड़ा एआई खेती सहायक",
+                "greeting": "राम राम! मैं एग्रोहेल्प आं, तुहाड़ा एआई खेती सहायक. मैं तुहाड़े इलाके दे मुताबिक सलाह देई सकदा आं. शुरू करने लेई, कृपा करियै अपने शैह्‌र जा रियासत दा नां दस्सदे.",
+                "placeholder": "अपना संदेश लिखो..."
+            }
+        };
+
+        // DOM Elements
+        const themeDropdownToggle = document.getElementById('theme-dropdown-toggle');
+        const themeDropdownMenu = document.getElementById('theme-dropdown-menu');
+        const selectedThemeText = document.getElementById('selected-theme-text');
+        const themeOptions = themeDropdownMenu.querySelectorAll('[data-theme]');
+        const langDropdownToggle = document.getElementById('lang-dropdown-toggle');
+        const langDropdownMenu = document.getElementById('lang-dropdown-menu');
+        const selectedLangText = document.getElementById('selected-lang-text');
+        const langOptions = langDropdownMenu.querySelectorAll('[data-lang]');
+        const chatContainer = document.getElementById('chat-container');
+        const chatHeader = document.getElementById('chat-header');
+        const chatWindow = document.getElementById('chat-window');
+        const messageInput = document.getElementById('message-input');
+        const sendButton = document.getElementById('send-button');
+        const body = document.body;
+        const greetingMessage = document.getElementById('greeting-message');
+        const agrohelpTitle = document.getElementById('agrohelp-title');
+        const agrohelpSubtitle = document.getElementById('agrohelp-subtitle');
+        const chatForm = document.getElementById('chat-form');
+
+        // Initial language setup
+        updateLanguage(userLanguage);
+        
+        // --- Event Listeners for Dropdowns ---
+        
+        // Toggle theme dropdown menu visibility
+        themeDropdownToggle.addEventListener('click', (e) => {
+            e.stopPropagation();
+            themeDropdownMenu.classList.toggle('hidden');
+            langDropdownMenu.classList.add('hidden'); // Close other dropdown
+        });
+
+        // Toggle language dropdown menu visibility
+        langDropdownToggle.addEventListener('click', (e) => {
+            e.stopPropagation();
+            langDropdownMenu.classList.toggle('hidden');
+            themeDropdownMenu.classList.add('hidden'); // Close other dropdown
+        });
+
+        // Close dropdowns when clicking outside
+        document.addEventListener('click', (e) => {
+            if (!themeDropdownToggle.contains(e.target) && !themeDropdownMenu.contains(e.target)) {
+                themeDropdownMenu.classList.add('hidden');
+            }
+            if (!langDropdownToggle.contains(e.target) && !langDropdownMenu.contains(e.target)) {
+                langDropdownMenu.classList.add('hidden');
+            }
+        });
+
+        // Handle theme selection
+        themeOptions.forEach(option => {
+            option.addEventListener('click', () => {
+                const selectedTheme = option.getAttribute('data-theme');
+                applyTheme(selectedTheme);
+                selectedThemeText.textContent = option.textContent;
+                themeDropdownMenu.classList.add('hidden');
+            });
+        });
+        
+        // Handle language selection
+        langOptions.forEach(option => {
+            option.addEventListener('click', () => {
+                userLanguage = option.getAttribute('data-lang');
+                selectedLangText.textContent = option.getAttribute('data-lang') === "English" ? "English (default)" : option.getAttribute('data-lang');
+                updateLanguage(userLanguage);
+                langDropdownMenu.classList.add('hidden');
+            });
+        });
+
+        // --- Functions ---
+
+        function applyTheme(selectedTheme) {
+            // Remove all existing theme classes first
+            body.classList.remove('light', 'dark');
+            chatContainer.classList.remove('light', 'dark');
+            chatHeader.classList.remove('light', 'dark');
+            chatWindow.classList.remove('bg-slate-50', 'bg-gray-800');
+            messageInput.classList.remove('light', 'dark');
+            sendButton.classList.remove('light', 'dark');
+            
+            // Add the selected theme classes
+            body.classList.add(selectedTheme);
+            chatContainer.classList.add(selectedTheme);
+            chatHeader.classList.add(selectedTheme);
+            messageInput.classList.add(selectedTheme);
+            sendButton.classList.add(selectedTheme);
+            
+            if (selectedTheme === 'dark') {
+                chatWindow.classList.add('bg-gray-800');
+                chatWindow.classList.remove('bg-slate-50');
+            } else {
+                chatWindow.classList.add('bg-slate-50');
+                chatWindow.classList.remove('bg-gray-800');
+            }
+            
+            document.querySelectorAll('.chat-bubble').forEach(bubble => {
+                bubble.classList.remove('light', 'dark');
+                bubble.classList.add(selectedTheme);
+            });
+        }
+        
+        function updateLanguage(lang) {
+            const translation = translations[lang];
+            if (translation) {
+                agrohelpTitle.textContent = translation.title;
+                agrohelpSubtitle.textContent = translation.subtitle;
+                greetingMessage.textContent = translation.greeting;
+                messageInput.placeholder = translation.placeholder;
+            }
+        }
+        
+        // --- Core chatbot functionality script ---
+        
+        chatForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const userMessage = messageInput.value.trim();
+            if (!userMessage) return;
+
+            messageInput.disabled = true;
+            sendButton.disabled = true;
+
+            appendMessage(userMessage, 'user');
+            messageInput.value = '';
+            
+            showTypingIndicator();
+
+            // Simple keyword detection to find location
+            const locationKeywords = ["in", "from", "at"];
+            const words = userMessage.toLowerCase().split(' ');
+            let locationIndex = -1;
+            
+            for (const keyword of locationKeywords) {
+                locationIndex = words.indexOf(keyword);
+                if (locationIndex !== -1 && locationIndex < words.length - 1) {
+                    const potentialLocation = words.slice(locationIndex + 1).join(' ');
+                    // Simple check: if the location is more than one word, it's a valid candidate
+                    if (potentialLocation.length > 0) {
+                        userLocation = potentialLocation.split(' ')[0]; // Take the first word after keyword
+                        break; 
+                    }
+                }
+            }
+
+            try {
+                const botResponse = await getGeminiResponse(userMessage);
+                removeTypingIndicator();
+                appendMessage(botResponse, 'bot');
+            } catch (error) {
+                console.error('Error fetching Gemini response:', error);
+                removeTypingIndicator();
+                appendMessage("Sorry, I'm having trouble connecting. Please try again later.", 'bot');
+            } finally {
+                messageInput.disabled = false;
+                sendButton.disabled = false;
+                messageInput.focus();
+            }
+        });
+
+        async function getGeminiResponse(userMessage) {
+            const payload = {
+                userMessage: userMessage,
+                userLocation: userLocation,
+                userLanguage: userLanguage
+            };
+            
+            let responseText = "An unexpected error occurred.";
+
+            try {
+                const response = await fetch('/chat', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(payload)
+                });
+
+                if (!response.ok) {
+                    const errorBody = await response.json();
+                    throw new Error(`Server error: ${response.status} - ${errorBody.error || 'Unknown error'}`);
+                }
+
+                const data = await response.json();
+                
+                if (data.botResponse) {
+                    responseText = data.botResponse;
+                } else {
+                    responseText = "I'm sorry, I couldn't generate a response. Please try a different message.";
+                }
+
+            } catch (error) {
+                console.error('Fetch error:', error);
+                return "Sorry, I'm unable to provide a response right now. Please try again later.";
+            }
+
+            return responseText;
+        }
+
+        function appendMessage(message, sender) {
+            const messageWrapper = document.createElement('div');
+            messageWrapper.className = `flex ${sender === 'user' ? 'justify-end' : 'justify-start'} mb-4`;
+            
+            const messageBubble = document.createElement('div');
+            const themeClass = body.classList.contains('dark') ? 'dark' : 'light';
+            messageBubble.className = `chat-bubble ${sender} p-4 rounded-lg ${themeClass}`;
+            
+            const messageParagraph = document.createElement('p');
+            messageParagraph.textContent = message;
+            
+            messageBubble.appendChild(messageParagraph);
+            messageWrapper.appendChild(messageBubble);
+            chatWindow.appendChild(messageWrapper);
+            
+            scrollToBottom();
+        }
+
+        function showTypingIndicator() {
+            const typingIndicator = document.createElement('div');
+            typingIndicator.id = 'typing-indicator';
+            typingIndicator.className = 'flex justify-start mb-4';
+            const themeClass = body.classList.contains('dark') ? 'dark' : 'light';
+            typingIndicator.innerHTML = `
+                <div class="chat-bubble bot p-4 rounded-lg flex items-center space-x-2 ${themeClass}">
+                    <span class="w-2 h-2 rounded-full animate-pulse" style="background-color: ${body.classList.contains('dark') ? '#9CA3AF' : '#6B7280'}; animation-delay: 0s;"></span>
+                    <span class="w-2 h-2 rounded-full animate-pulse" style="background-color: ${body.classList.contains('dark') ? '#9CA3AF' : '#6B7280'}; animation-delay: 0.2s;"></span>
+                    <span class="w-2 h-2 rounded-full animate-pulse" style="background-color: ${body.classList.contains('dark') ? '#9CA3AF' : '#6B7280'}; animation-delay: 0.4s;"></span>
+                </div>
+            `;
+            chatWindow.appendChild(typingIndicator);
+            scrollToBottom();
+        }
+
+        function removeTypingIndicator() {
+            const typingIndicator = document.getElementById('typing-indicator');
+            if (typingIndicator) {
+                typingIndicator.remove();
+            }
+        }
+
+        function scrollToBottom() {
+            chatWindow.scrollTop = chatWindow.scrollHeight;
+        }
+    </script>
+</body>
+</html>
